@@ -95,11 +95,15 @@ func init() {
 	}
 }
 
+func GetWord(lang LanguageStr, idx int64) string {
+	return wordLists.words[lang][idx]
+}
+
 func RandomWord(lang LanguageStr) string {
 	return wordLists.words[lang][rand.IntN(len(wordLists.words[lang]))]
 }
 
-func GenerateMnemonic(size int, lang LanguageStr) []string {
+func GenerateMnemonic(size int64, lang LanguageStr) []string {
 	var result []string
 	for _ = range size {
 		result = append(result, RandomWord(lang))
