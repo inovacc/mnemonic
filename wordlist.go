@@ -1,4 +1,4 @@
-package wordlist
+package mnemonic
 
 import "math/rand/v2"
 

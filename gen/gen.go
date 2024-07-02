@@ -26,7 +26,7 @@ const (
 	Portuguese LanguageStr = "Portuguese"
 )
 
-const templateFile = `package wordlist
+const templateFile = `package mnemonic
 
 import "math/rand/v2"
 
@@ -112,7 +112,7 @@ func GenerateMnemonic(size int64, lang LanguageStr) []string {
 }
 `
 
-//go:generate go run generate.go
+//go:generate go run gen.go
 
 func main() {
 	urls := make(map[LanguageStr]string)
@@ -137,7 +137,7 @@ func main() {
 		panic(err)
 	}
 
-	file, err := os.Create("wordlist.go")
+	file, err := os.Create("../wordlist.go")
 	if err != nil {
 		panic(err)
 	}
