@@ -16,6 +16,11 @@ type Mnemonic struct {
 
 // New creates a new Mnemonic from given entropy and language.
 func New(ent []byte, lang LanguageStr) (*Mnemonic, error) {
+	bitLength := len(ent) * 8
+	if bitLength < 128 || bitLength > 256 || bitLength%32 != 0 {
+		return nil, fmt.Errorf("invalid entropy length: %d bits (must be 128–256 and divisible by 32)", bitLength)
+	}
+
 	const chunkSize = 11
 
 	bits := entropy.CheckSummed(ent)

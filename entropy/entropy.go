@@ -24,7 +24,7 @@ func Random(length int) ([]byte, error) {
 	if length < 128 || length > 256 || length%32 > 0 {
 		return nil, errors.New("entropy length must be between 128 and 256 inclusive, and be divisible by 32")
 	}
-	bytes := make([]byte, length/32)
+	bytes := make([]byte, length/8)
 	if _, err := rand.Read(bytes); err != nil {
 		return nil, err
 	}
