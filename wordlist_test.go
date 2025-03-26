@@ -17,7 +17,7 @@ func TestRandomWord(t *testing.T) {
 }
 
 func TestGenerateMnemonic(t *testing.T) {
-	mnemonic := GenerateMnemonic(24, English)
+	mnemonic := GenerateMnemonic(12, English)
 
 	if len(mnemonic) == 0 {
 		t.Errorf("GenerateMnemonic() = %v; want a mnemonic", mnemonic)
