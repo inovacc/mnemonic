@@ -8,51 +8,63 @@ import (
 )
 
 // Mnemonic represents a collection of human-readable words
-// used for HD wallet seed generation
+// used for HD wallet seed generation.
 type Mnemonic struct {
 	Words    []string
 	Language LanguageStr
 }
 
-// New returns a new Mnemonic for the given entropy and language
+// New creates a new Mnemonic from given entropy and language.
 func New(ent []byte, lang LanguageStr) (*Mnemonic, error) {
 	const chunkSize = 11
+
 	bits := entropy.CheckSummed(ent)
-	length := len(bits)
-	words := make([]string, length/11)
-	for i := 0; i < length; i += chunkSize {
-		stringVal := string(bits[i : chunkSize+i])
-		intVal, err := strconv.ParseInt(stringVal, 2, 64)
-		if err != nil {
-			return nil, fmt.Errorf("could not convert %s to word index", stringVal)
-		}
-		words[(chunkSize+i)/11-1] = GetWord(lang, intVal)
+	if len(bits)%chunkSize != 0 {
+		return nil, fmt.Errorf("invalid checksummed entropy length: must be divisible by %d", chunkSize)
 	}
-	return &Mnemonic{words, lang}, nil
+
+	wordCount := len(bits) / chunkSize
+	words := make([]string, wordCount)
+
+	for i := 0; i < wordCount; i++ {
+		start := i * chunkSize
+		end := start + chunkSize
+		bitChunk := bits[start:end]
+
+		index, err := strconv.ParseInt(string(bitChunk), 2, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid binary chunk '%s' at index %d: %w", bitChunk, i, err)
+		}
+
+		words[i] = GetWord(lang, int(index))
+	}
+
+	return &Mnemonic{
+		Words:    words,
+		Language: lang,
+	}, nil
 }
 
-// NewRandom returns a new Mnemonic with random entropy of the given length
-// in bits
-func NewRandom(length int, lang LanguageStr) (*Mnemonic, error) {
-	ent, err := entropy.Random(length)
+// NewRandom generates a Mnemonic using random entropy of a given bit length.
+func NewRandom(bitLength int, lang LanguageStr) (*Mnemonic, error) {
+	ent, err := entropy.Random(bitLength)
 	if err != nil {
-		return nil, fmt.Errorf("error generating random entropy: %s", err)
+		return nil, fmt.Errorf("error generating random entropy: %w", err)
 	}
 	return New(ent, lang)
 }
 
-// Sentence returns a Mnemonic's word collection as a space separated
-// sentence
+// Sentence returns the Mnemonic words joined as a phrase.
+// Uses full-width space for Japanese.
 func (m *Mnemonic) Sentence() string {
+	separator := " "
 	if m.Language == Japanese {
-		return strings.Join(m.Words, `　`)
+		separator = "　"
 	}
-	return strings.Join(m.Words, " ")
+	return strings.Join(m.Words, separator)
 }
 
-// GenerateSeed returns a seed used for wallet generation per
-// BIP-0032 or similar method. The internal Words set
-// of the Mnemonic will be used
+// GenerateSeed generates a seed (e.g., for BIP-0032 wallets) from the mnemonic sentence and a passphrase.
 func (m *Mnemonic) GenerateSeed(passphrase string) *Seed {
 	return NewSeed(m.Sentence(), passphrase)
 }
